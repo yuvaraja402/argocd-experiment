@@ -20,7 +20,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}  # Using secrets instead of vars for security
+          username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set up Docker Buildx
@@ -30,4 +30,4 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker buildx build --platform linux/amd64 -t argocd-experiment:v1.0 --push ./backend-code
+          docker buildx build --platform linux/amd64 -t cyberprince/argocd-experiment:v1.0 --push ./backend-code
