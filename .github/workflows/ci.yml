@@ -22,7 +22,7 @@ jobs:
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          
+
   build:
     name: Build and Push Docker Image
     needs: authenticate
@@ -39,4 +39,5 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker buildx build --platform linux/amd64 -t argocd-experiment:v1.0 --push .
+          docker buildx build --platform linux/amd64 -t argocd-experiment:v1.0 --push ./backend-code
+          
