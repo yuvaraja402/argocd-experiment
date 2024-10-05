@@ -13,6 +13,10 @@ def dublin_time():
     # Format the datetime as a 12-hour format with AM/PM
     formatted_time = dublin_time.strftime('%Y-%m-%d %I:%M:%S %p')
 
+
+# poda lusu
+
+
     # Return the JSON response
     return jsonify({"Dublin_datetime": formatted_time})
 
