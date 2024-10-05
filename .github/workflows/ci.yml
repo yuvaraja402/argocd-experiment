@@ -14,14 +14,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Authenticate with Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      # Login to Docker Hub using authentication token
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login --username "${{ env.DOCKEHUB_USERNAME }}" --password-stdin
 
   build:
     name: Build and Push Docker Image
@@ -29,8 +27,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -40,5 +38,3 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           docker buildx build --platform linux/amd64 -t argocd-experiment:v1.0 --push .
-        env:
-          DOCKER_CLI_EXPERIMENTAL: enabled
