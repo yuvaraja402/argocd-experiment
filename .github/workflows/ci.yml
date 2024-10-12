@@ -55,8 +55,13 @@ jobs:
           install_components: 'kubectl'  # Install kubectl for Kubernetes management
           version: '>= 363.0.0'  # Ensures compatibility with Workload Identity Federation
 
+
+      # Ran into "GKS Cluster" creation issue, runner machine says to enable "Kubernetes API" within GCP console
+      - name: Enable Kubernetes Engine API
+        run: gcloud services enable container.googleapis.com
+
       # Creating GKE cluster
-      - name: 'GKE Cluster Creation'
+      - name: 'GKS Cluster Creation'
         run: |
           gcloud container clusters create argocd-experiment-cluster \
           --region europe-west3 \
