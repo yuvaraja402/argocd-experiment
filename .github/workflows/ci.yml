@@ -41,9 +41,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure GCP Credentials
-        uses: gcp-actions/configure-gcp-credentials@v4
+      - id: 'auth'
+        name: Configure GCP Credentials
+        uses: 'google-github-actions/auth@v2'
         with:
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-          project_id: flask-argocd-experiment
-          region: europe-west3
+          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'  # Store the service account JSON key in GitHub Secrets
+
+      # Set up the gcloud CLI
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          project_id: 'flask-argocd-experiment'  # Replace with your GCP project ID
+          install_components: 'kubectl'  # Optional: Install additional gcloud components like kubectl
+          version: '>= 363.0.0'  # Ensures compatibility with Workload Identity Federation if needed
+
+      # Use the gcloud CLI
+      - name: 'Use gcloud CLI'
+        run: 'gcloud info'
+
