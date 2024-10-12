@@ -45,17 +45,25 @@ jobs:
         name: Configure GCP Credentials
         uses: 'google-github-actions/auth@v2'
         with:
-          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'  # Store the service account JSON key in GitHub Secrets
+          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'
 
       # Set up the gcloud CLI
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
+        uses: 'google-github-actions/setup-gcloud@v2.1.1'
         with:
-          project_id: 'flask-argocd-experiment'  # Replace with your GCP project ID
-          install_components: 'kubectl'  # Optional: Install additional gcloud components like kubectl
-          version: '>= 363.0.0'  # Ensures compatibility with Workload Identity Federation if needed
+          project_id: 'flask-argocd-experiment'
+          install_components: 'kubectl'  # Install kubectl for Kubernetes management
+          version: '>= 363.0.0'  # Ensures compatibility with Workload Identity Federation
 
-      # Use the gcloud CLI
-      - name: 'Use gcloud CLI'
-        run: 'gcloud info'
-
+      # Creating GKE cluster
+      - name: 'GKE Cluster Creation'
+        run: |
+          gcloud container clusters create argocd-experiment-cluster \
+          --region europe-west3 \
+          --num-nodes 1 \
+          --machine-type e2-micro \
+          --enable-ip-alias \
+          --release-channel regular \
+          --enable-autorepair \
+          --enable-autoupgrade \
+          --async
