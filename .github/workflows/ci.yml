@@ -52,8 +52,8 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2.1.1'
         with:
           project_id: 'flask-argocd-experiment'
-          install_components: 'kubectl'  # Install kubectl for Kubernetes management
-          version: '>= 363.0.0'  # Ensures compatibility with Workload Identity Federation
+          install_components: 'kubectl'
+          version: '>= 363.0.0'
 
       # Enable required GCP services
       - name: Enable Kubernetes Engine API
@@ -61,18 +61,21 @@ jobs:
           gcloud services enable container.googleapis.com
           gcloud services enable compute.googleapis.com   
 
-      # Creating GKE cluster with single zone and no autoscaling, autorepair, or autoupgrade
-      - name: 'GKS Cluster Creation'
+      # Creating GKE cluster with required settings
+      - name: 'Check if GKE Cluster Exists'
         run: |
-          gcloud container clusters create argocd-experiment-cluster \
-          --zone europe-west3-a \
-          --num-nodes 1 \
-          --machine-type e2-micro \
-          --enable-ip-alias \
-          --release-channel regular \
-          --no-enable-autorepair \
-          --no-enable-autoupgrade \
-          --async
+          if ! gcloud container clusters describe argocd-experiment-cluster --zone europe-west3-a --project flask-argocd-experiment; then
+            gcloud container clusters create argocd-experiment-cluster \
+            --zone europe-west3-a \
+            --num-nodes 1 \
+            --machine-type e2-micro \
+            --enable-ip-alias \
+            --release-channel regular \
+            --no-enable-autorepair \
+            --async
+          else
+            echo "Cluster already exists, skipping creation."
+          fi
 
   deploy:
     name: Deploy to GKE
@@ -93,13 +96,25 @@ jobs:
         run: |
           gcloud container clusters get-credentials argocd-experiment-cluster --zone europe-west3-a --project flask-argocd-experiment
 
-      # Deploy the Docker image as a Kubernetes deployment
-      - name: 'Create FlaskApp Deployment'
+      # Create FlaskApp deployment with kubectl create, if it doesn't already exist
+      - name: 'Create FlaskApp Deployment if not exists'
         run: |
-          kubectl create deployment flaskapp --image=cyberprince/argocd-experiment:v1.0
-          kubectl expose deployment flaskapp --type=LoadBalancer --port=5050 --target-port=5050
+          if ! kubectl get deployment flaskapp; then
+            kubectl create deployment flaskapp --image=cyberprince/argocd-experiment:v1.0
+          else
+            echo "Deployment flaskapp already exists, skipping creation."
+          fi
 
-      # Optional: Update the Docker image version in GKE deployment (for subsequent updates)
+      # Expose FlaskApp service, if it doesn't already exist
+      - name: 'Expose FlaskApp Service if not exists'
+        run: |
+          if ! kubectl get svc flaskapp; then
+            kubectl expose deployment flaskapp --type=LoadBalancer --port=5050 --target-port=5050
+          else
+            echo "Service flaskapp already exists, skipping creation."
+          fi
+
+      # Optional: Update the Docker image version in GKE deployment
       - name: 'Update Docker Image Version'
         run: |
           kubectl set image deployment/flaskapp flaskapp=cyberprince/argocd-experiment:v1.0
