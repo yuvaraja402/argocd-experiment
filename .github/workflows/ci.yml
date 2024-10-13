@@ -62,7 +62,6 @@ jobs:
           gcloud services enable compute.googleapis.com   
 
       # Creating GKE cluster with single zone and no autoscaling, autorepair, or autoupgrade
-            # Creating GKE cluster with auto-upgrade enabled (since it's required for the Regular release channel)
       - name: 'GKS Cluster Creation'
         run: |
           gcloud container clusters create argocd-experiment-cluster \
@@ -72,8 +71,8 @@ jobs:
           --enable-ip-alias \
           --release-channel regular \
           --no-enable-autorepair \
+          --no-enable-autoupgrade \
           --async
-
 
   deploy:
     name: Deploy to GKE
@@ -83,6 +82,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - id: 'auth'
+        name: Re-authenticate GCP Credentials for Deployment
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'
 
       - name: Set up Kubernetes context
         run: |
